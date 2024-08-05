@@ -22,60 +22,45 @@ export default function Home() {
     });
 
     setInventory(inventoryList);
-    console.log(inventoryList)
+    console.log(inventoryList);
   };
 
-  const addItem = async (item) =>{
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
+  const addItem = async (item) => {
+    const docRef = doc(collection(firestore, "inventory"), item);
+    const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()){
-      const {quantity} = docSnap.data()
-      await setDoc(docRef, {quantity: quantity +1 })
+    if (docSnap.exists()) {
+      const { quantity } = docSnap.data();
+      await setDoc(docRef, { quantity: quantity + 1 });
+    } else {
+      await setDoc(docRef, { quantity: 1 });
     }
-    else{
-      await setDoc(docRef, {quantity: 1})
-    }
-    await updateInventory()
-    }
-    
- 
-  const removeItem = async (item) =>{
-    const docRef = doc(collection(firestore, 'inventory'), item)
-    const docSnap = await getDoc(docRef)
+    await updateInventory();
+  };
 
-    if (docSnap.exists()){
-      const {quantity} = docSnap.data()
-      if (quantity ==1){
-        await deleteDoc(docRef)
-      }
-      else{
-        await setDoc(docRef, {quantity: quantity -1 })
+  const removeItem = async (item) => {
+    const docRef = doc(collection(firestore, "inventory"), item);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const { quantity } = docSnap.data();
+      if (quantity == 1) {
+        await deleteDoc(docRef);
+      } else {
+        await setDoc(docRef, { quantity: quantity - 1 });
       }
     }
-    await updateInventory()
-  }
+    await updateInventory();
+  };
   useEffect(() => {
     updateInventory();
   }, []);
 
-const handleOpen= ()=> setOpen(true)
-const handleClose= ()=> setOpen(false)
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
   return (
-    <Box>
+    <Box width="100vw" height="100vh" display="flex" alignItems="center">
       <Typography variant="h1"> Inventory Management</Typography>
-      {
-        inventory.forEach((item)=>{
-          console.log(item)
-          return (
-            <Box>
-              {item.name}
-              {item.count}
-            </Box>
-          )
-        })
-      }
     </Box>
-  )
-
-  }
+  );
+}
