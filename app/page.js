@@ -1,13 +1,57 @@
 "use client";
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Modal,
+  TextField,
+} from "@mui/material";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
 
-import { useEffect, useState } from "react";
 import { firestore } from "@/firebase";
-import { Box, Modal, Typography, TextField, Button } from "@mui/material";
-import { collection, query, getDocs, getDoc, setDoc, doc, deleteDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  deleteDoc,
+  getDoc,
+} from "firebase/firestore";
+import { useState, useEffect } from "react";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "white",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  display: "flex",
+  flexDirection: "column",
+  gap: 3,
+};
 
 export default function Home() {
+  // We'll add our component logic here
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
+
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
   const [itemName, setItemName] = useState("");
 
   const updateInventory = async () => {
@@ -15,20 +59,17 @@ export default function Home() {
     const docs = await getDocs(snapshot);
     const inventoryList = [];
     docs.forEach((doc) => {
-      inventoryList.push({
-        name: doc.id,
-        ...doc.data(),
-      });
+      inventoryList.push({ name: doc.id, ...doc.data() });
     });
-
     setInventory(inventoryList);
-    console.log(inventoryList);
   };
+  useEffect(() => {
+    updateInventory();
+  }, []);
 
   const addItem = async (item) => {
     const docRef = doc(collection(firestore, "inventory"), item);
     const docSnap = await getDoc(docRef);
-
     if (docSnap.exists()) {
       const { quantity } = docSnap.data();
       await setDoc(docRef, { quantity: quantity + 1 });
@@ -41,7 +82,6 @@ export default function Home() {
   const removeItem = async (item) => {
     const docRef = doc(collection(firestore, "inventory"), item);
     const docSnap = await getDoc(docRef);
-
     if (docSnap.exists()) {
       const { quantity } = docSnap.data();
       if (quantity === 1) {
@@ -53,61 +93,148 @@ export default function Home() {
     await updateInventory();
   };
 
-  useEffect(() => {
-    updateInventory();
-  }, []);
-
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-
-  const handleAddItem = async () => {
-    if (itemName.trim()) {
-      await addItem(itemName);
-      setItemName(""); // Clear the input field
-      handleClose(); // Close the modal
-    }
-  };
-
   return (
     <Box
       width="100vw"
-      height="100vh"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
+      height="70vh"
+      display={"flex"}
+      justifyContent={"center"}
+      flexDirection={"column"}
+      alignItems={"center"}
       gap={2}
     >
-      <Modal open={open} onClose={handleClose}>
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          width="400px"
-          bgcolor="white"
-          border="2px solid #000"
-          boxShadow={24}
-          p={4}
-          display="flex"
-          flexDirection="column"
-          gap={3}
-          sx={{
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <Typography variant="h6">Add Item</Typography>
-          <TextField
-            variant="outlined"
-            fullWidth
-            label="Item Name"
-            value={itemName}
-            onChange={(e) => setItemName(e.target.value)}
-          />
-          <Button onClick={handleAddItem} variant="contained" sx={{ marginTop: 2 }}>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
             Add Item
-          </Button>
+          </Typography>
+          <Stack width="100%" direction={"row"} spacing={2}>
+            <TextField
+              id="outlined-basic"
+              label="Item"
+              variant="outlined"
+              fullWidth
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => {
+                addItem(itemName);
+                setItemName("");
+                handleClose();
+              }}
+            >
+              Add
+            </Button>
+          </Stack>
         </Box>
       </Modal>
-      <Typography variant="h1">Inventory Management</Typography>
+      <Button variant="contained" onClick={handleOpen}>
+        Add New Item
+      </Button>
+      <Box border={"1px solid #333"}>
+        <Box
+          width="800px"
+          height="70px"
+          bgcolor={"#ADD8E6"}
+          display={"flex"}
+          justifyContent={"center"}
+          alignItems={"center"}
+        >
+          <Typography
+            variant={"h4"}
+            color={"#333"}
+            fontFamily={"Segoe UI Symbol"}
+            textAlign={"center"}
+          >
+            Inventory Items
+          </Typography>
+        </Box>
+
+        {/*<Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
+          {inventory.map(({name, quantity}) => (
+            <Box
+              key={name}
+              width="100%"
+              minHeight="60px"
+              display={'flex'}
+              justifyContent={'space-between'}
+              alignItems={'center'}
+              bgcolor={'#f0f0f0'}
+              paddingX={4}
+            >
+              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
+                {name.charAt(0).toUpperCase() + name.slice(1)}
+              </Typography>
+              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
+                Quantity: {quantity}
+              </Typography>
+              <Button variant="contained" onClick={() => addItem(name)}>
+                Add
+              </Button>
+              <Button variant="contained" onClick={() => removeItem(name)}>
+                Remove
+              </Button>
+            </Box>
+          ))}
+          </Stack> */}
+
+        <TableContainer
+          component={Paper}
+          sx={{ width: "800px", minHeight: "300px", overflow: "auto" }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>
+                  <Typography variant="h6">Product Name</Typography>
+                </TableCell>
+                <TableCell align="center">
+                  <Typography variant="h6">Quantity</Typography>
+                </TableCell>
+                <TableCell align="center">
+                  <Typography variant="h6">Operations</Typography>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {inventory.map(({ name, quantity }) => (
+                <TableRow key={name}>
+                  <TableCell>
+                    <Typography variant="h6">
+                      {name.charAt(0).toUpperCase() + name.slice(1)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Typography variant="h6"> {quantity}</Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Button
+                      variant="contained"
+                      onClick={() => addItem(name)}
+                      sx={{ mr: 1 }}
+                    >
+                      Add
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={() => removeItem(name)}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </Box>
   );
 }
