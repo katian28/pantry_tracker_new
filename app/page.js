@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { firestore } from "@/firebase";
-import { Box, Modal, Typography, Stack, TextField, Button } from "@mui/material";
+import { Box, Modal, Typography, TextField, Button } from "@mui/material";
 import { collection, query, getDocs, getDoc, setDoc, doc, deleteDoc } from "firebase/firestore";
 
 export default function Home() {
@@ -93,16 +92,15 @@ export default function Home() {
           gap={3}
           sx={{
             transform: "translate(-50%, -50%)",
-            maxWidth: "90vw", // Adjust as needed
-            maxHeight: "90vh", // Adjust as needed
           }}
         >
           <Typography variant="h6">Add Item</Typography>
-          <TextField 
+          <TextField
+            variant="outlined"
+            fullWidth
             label="Item Name"
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
-            fullWidth // Ensures the TextField takes up the full width of its container
           />
           <Button onClick={handleAddItem} variant="contained" sx={{ marginTop: 2 }}>
             Add Item
