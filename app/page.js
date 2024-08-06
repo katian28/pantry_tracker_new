@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Box,
   Stack,
@@ -6,18 +7,16 @@ import {
   Button,
   Modal,
   TextField,
-} from "@mui/material";
-import {
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  ThemeProvider,
+  createTheme,
 } from "@mui/material";
-
-import { firestore } from "@/firebase";
 import {
   collection,
   doc,
@@ -28,6 +27,30 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { useState, useEffect } from "react";
+import { firestore } from "@/firebase";
+
+// Define a custom theme with purple colors
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#6a1b9a", // Purple
+    },
+    secondary: {
+      main: "#ab47bc", // Lighter Purple
+    },
+    background: {
+      default: "#f3e5f5", // Light Purple Background
+    },
+  },
+  typography: {
+    h6: {
+      fontWeight: 600,
+    },
+    h4: {
+      fontWeight: 700,
+    },
+  },
+});
 
 const style = {
   position: "absolute",
@@ -35,8 +58,8 @@ const style = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: "white",
-  border: "2px solid #000",
+  bgcolor: "#ffffff", // White background
+  border: "2px solid #6a1b9a", // Purple border
   boxShadow: 24,
   p: 4,
   display: "flex",
@@ -45,14 +68,12 @@ const style = {
 };
 
 export default function Home() {
-  // We'll add our component logic here
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
+  const [itemName, setItemName] = useState("");
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  const [itemName, setItemName] = useState("");
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, "inventory"));
@@ -63,6 +84,7 @@ export default function Home() {
     });
     setInventory(inventoryList);
   };
+
   useEffect(() => {
     updateInventory();
   }, []);
@@ -94,147 +116,129 @@ export default function Home() {
   };
 
   return (
-    <Box
-      width="100vw"
-      height="70vh"
-      display={"flex"}
-      justifyContent={"center"}
-      flexDirection={"column"}
-      alignItems={"center"}
-      gap={2}
-    >
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+    <ThemeProvider theme={theme}>
+      <Box
+        width="100vw"
+        height="100vh"
+        display={"flex"}
+        justifyContent={"center"}
+        flexDirection={"column"}
+        alignItems={"center"}
+        gap={2}
+        sx={{ backgroundColor: theme.palette.background.default }}
       >
-        <Box sx={style}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Add Item
-          </Typography>
-          <Stack width="100%" direction={"row"} spacing={2}>
-            <TextField
-              id="outlined-basic"
-              label="Item"
-              variant="outlined"
-              fullWidth
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-            />
-            <Button
-              variant="outlined"
-              onClick={() => {
-                addItem(itemName);
-                setItemName("");
-                handleClose();
-              }}
-            >
-              Add
-            </Button>
-          </Stack>
-        </Box>
-      </Modal>
-      <Button variant="contained" onClick={handleOpen}>
-        Add New Item
-      </Button>
-      <Box border={"1px solid #333"}>
-        <Box
-          width="800px"
-          height="70px"
-          bgcolor={"#ADD8E6"}
-          display={"flex"}
-          justifyContent={"center"}
-          alignItems={"center"}
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
         >
-          <Typography
-            variant={"h4"}
-            color={"#333"}
-            fontFamily={"Segoe UI Symbol"}
-            textAlign={"center"}
-          >
-            Inventory Items
-          </Typography>
-        </Box>
-
-        {/*<Stack width="800px" height="300px" spacing={2} overflow={'auto'}>
-          {inventory.map(({name, quantity}) => (
-            <Box
-              key={name}
-              width="100%"
-              minHeight="60px"
-              display={'flex'}
-              justifyContent={'space-between'}
-              alignItems={'center'}
-              bgcolor={'#f0f0f0'}
-              paddingX={4}
-            >
-              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
-                {name.charAt(0).toUpperCase() + name.slice(1)}
-              </Typography>
-              <Typography variant={'h4'} color={'#333'} textAlign={'center'}>
-                Quantity: {quantity}
-              </Typography>
-              <Button variant="contained" onClick={() => addItem(name)}>
+          <Box sx={style}>
+            <Typography id="modal-modal-title" variant="h6" component="h2" color={theme.palette.primary.main}>
+              Add Item
+            </Typography>
+            <Stack width="100%" direction={"row"} spacing={2}>
+              <TextField
+                id="outlined-basic"
+                label="Item"
+                variant="outlined"
+                fullWidth
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                  addItem(itemName);
+                  setItemName("");
+                  handleClose();
+                }}
+              >
                 Add
               </Button>
-              <Button variant="contained" onClick={() => removeItem(name)}>
-                Remove
-              </Button>
-            </Box>
-          ))}
-          </Stack> */}
-
-        <TableContainer
-          component={Paper}
-          sx={{ width: "800px", minHeight: "300px", overflow: "auto" }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <Typography variant="h6">Product Name</Typography>
-                </TableCell>
-                <TableCell align="center">
-                  <Typography variant="h6">Quantity</Typography>
-                </TableCell>
-                <TableCell align="center">
-                  <Typography variant="h6">Operations</Typography>
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {inventory.map(({ name, quantity }) => (
-                <TableRow key={name}>
+            </Stack>
+          </Box>
+        </Modal>
+        <Button variant="contained" color="primary" onClick={handleOpen}>
+          Add New Item
+        </Button>
+        <Box border={"1px solid #6a1b9a"} borderRadius={2}>
+          <Box
+            width="800px"
+            height="70px"
+            bgcolor={"#6a1b9a"}
+            display={"flex"}
+            justifyContent={"center"}
+            alignItems={"center"}
+          >
+            <Typography
+              variant={"h4"}
+              color={"#ffffff"} // White text
+              textAlign={"center"}
+            >
+              Inventory Items
+            </Typography>
+          </Box>
+          <TableContainer
+            component={Paper}
+            sx={{ width: "800px", minHeight: "300px", overflow: "auto" }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
                   <TableCell>
-                    <Typography variant="h6">
-                      {name.charAt(0).toUpperCase() + name.slice(1)}
+                    <Typography variant="h6" color={theme.palette.primary.main}>
+                      Product Name
                     </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Typography variant="h6"> {quantity}</Typography>
+                    <Typography variant="h6" color={theme.palette.primary.main}>
+                      Quantity
+                    </Typography>
                   </TableCell>
                   <TableCell align="center">
-                    <Button
-                      variant="contained"
-                      onClick={() => addItem(name)}
-                      sx={{ mr: 1 }}
-                    >
-                      Add
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={() => removeItem(name)}
-                    >
-                      Remove
-                    </Button>
+                    <Typography variant="h6" color={theme.palette.primary.main}>
+                      Operations
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {inventory.map(({ name, quantity }) => (
+                  <TableRow key={name}>
+                    <TableCell>
+                      <Typography variant="h6">
+                        {name.charAt(0).toUpperCase() + name.slice(1)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="h6"> {quantity}</Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => addItem(name)}
+                        sx={{ mr: 1 }}
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => removeItem(name)}
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
       </Box>
-    </Box>
+    </ThemeProvider>
   );
 }
