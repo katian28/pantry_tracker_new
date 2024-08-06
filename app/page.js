@@ -3,9 +3,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { firestore } from "@/firebase";
-import { Box, Modal, Typography, Stack, TextField } from "@mui/material";
-import { deleteDoc } from "firebase/firestore";
-import { collection, query, getDocs, getDoc, setDoc, doc } from "firebase/firestore";
+import { Box, Modal, Typography, Stack, TextField, Button } from "@mui/material";
+import { collection, query, getDocs, getDoc, setDoc, doc, deleteDoc } from "firebase/firestore";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
@@ -46,7 +45,7 @@ export default function Home() {
 
     if (docSnap.exists()) {
       const { quantity } = docSnap.data();
-      if (quantity == 1) {
+      if (quantity === 1) {
         await deleteDoc(docRef);
       } else {
         await setDoc(docRef, { quantity: quantity - 1 });
@@ -54,12 +53,22 @@ export default function Home() {
     }
     await updateInventory();
   };
+
   useEffect(() => {
     updateInventory();
   }, []);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const handleAddItem = async () => {
+    if (itemName.trim()) {
+      await addItem(itemName);
+      setItemName(""); // Clear the input field
+      handleClose(); // Close the modal
+    }
+  };
+
   return (
     <Box
       width="100vw"
@@ -74,7 +83,7 @@ export default function Home() {
           position="absolute"
           top="50%"
           left="50%"
-          width="400"
+          width="400px"
           bgcolor="white"
           border="2px solid #000"
           boxShadow={24}
@@ -83,25 +92,24 @@ export default function Home() {
           flexDirection="column"
           gap={3}
           sx={{
-            transform : "translate(-50%, -50%)",
-
+            transform: "translate(-50%, -50%)",
+            maxWidth: "90vw", // Adjust as needed
+            maxHeight: "90vh", // Adjust as needed
           }}
-
         >
-          <Typography variant="h6" >Add Item</Typography>
-          <Stack width="100%" direction= "row" spacing={2}>
-            <TextField
-            variant="outlined"
-            fullWidth
+          <Typography variant="h6">Add Item</Typography>
+          <TextField 
+            label="Item Name"
             value={itemName}
-            onChange={(e)=>{
-              setItemName(e.target.value);
-            }}
-            ></TextField>
-          </Stack>
+            onChange={(e) => setItemName(e.target.value)}
+            fullWidth // Ensures the TextField takes up the full width of its container
+          />
+          <Button onClick={handleAddItem} variant="contained" sx={{ marginTop: 2 }}>
+            Add Item
+          </Button>
         </Box>
       </Modal>
-      <Typography variant="h1"> Inventory Management</Typography>
+      <Typography variant="h1">Inventory Management</Typography>
     </Box>
   );
 }
