@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { firestore } from "@/firebase";
 import { Box, Modal, Typography, Stack, TextField } from "@mui/material";
 import { deleteDoc } from "firebase/firestore";
+import { collection, query, getDocs, getDoc, setDoc, doc } from "firebase/firestore";
+
 export default function Home() {
   const [inventory, setInventory] = useState([]);
   const [open, setOpen] = useState(false);
@@ -69,7 +71,7 @@ export default function Home() {
     >
       <Modal open={open} onClose={handleClose}>
         <Box
-          postion="absolute"
+          position="absolute"
           top="50%"
           left="50%"
           width="400"
